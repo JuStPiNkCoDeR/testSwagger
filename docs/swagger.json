@@ -1,0 +1,285 @@
+{
+  "info": {
+    "title": "NeuronEx",
+    "version": "0.0.1+alpha",
+    "description": "First try of Swagger"
+  },
+  "host": "devapi.neuronex.io",
+  "schemes": [
+    "https",
+    "http"
+  ],
+  "swagger": "2.0",
+  "paths": {
+    "/quickExchange/external": {
+      "post": {
+        "description": "Returns a new external exchange if it successfully creates.",
+        "tags": [
+          "QuickExchangeExternal"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The whole exchange input.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateExternalExchange"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The external exchange has been created successfully.",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/ExternalExchange"
+            }
+          }
+        }
+      }
+    },
+    "/quickExchange/externalWithAuth": {
+      "post": {
+        "description": "Returns a new external exchange for an authorized user if it successfully creates.",
+        "tags": [
+          "QuickExchangeExternal"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The whole exchange input.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateExternalExchange"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The external exchange has been created successfully.",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/ExternalExchange"
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ]
+      }
+    },
+    "/quickExchange/external/estimatedCosts": {
+      "get": {
+        "description": "Returns payments object due to specified external exchange.",
+        "tags": [
+          "QuickExchangeExternal"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "receive",
+            "description": "The exchangeable currency code.",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pay",
+            "description": "The currency code for paying to an user.",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "amount",
+            "description": "The amount of exchangeable currency.",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "creditWallet",
+            "description": "The customer wallet ID or address.",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully calculated costs.",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/PaymentInfo"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "FeeInfo": {
+      "required": [
+        "in",
+        "out",
+        "convertedIn",
+        "convertedOut"
+      ],
+      "properties": {
+        "in": {
+          "type": "string",
+          "description": "The amount of fee for exchangeable currency."
+        },
+        "out": {
+          "type": "string",
+          "description": "The amount of fee for paying from the service currency."
+        },
+        "convertedIn": {
+          "type": "string",
+          "description": "The in fee converted to paying to an user currency."
+        },
+        "convertedOut": {
+          "type": "string",
+          "description": "See later. :)"
+        }
+      }
+    },
+    "Currencies": {
+      "required": [
+        "receive",
+        "pay"
+      ],
+      "properties": {
+        "receive": {
+          "type": "string",
+          "description": "The exchangeable currency code."
+        },
+        "pay": {
+          "type": "string",
+          "description": "The currency code to pay to an user."
+        }
+      }
+    },
+    "PaymentInfo": {
+      "required": [
+        "toReceive",
+        "toPay",
+        "profit",
+        "fees",
+        "balance",
+        "rate",
+        "currencies"
+      ],
+      "properties": {
+        "toReceive": {
+          "type": "string",
+          "description": "The amount to receive from an user."
+        },
+        "toPay": {
+          "type": "string",
+          "description": "The amount to pay to an user."
+        },
+        "profit": {
+          "type": "string",
+          "description": "The service income."
+        },
+        "fees": {
+          "type": "object",
+          "$ref": "#/definitions/FeeInfo"
+        },
+        "balance": {
+          "type": "boolean",
+          "description": "The flag indicates if the service has enough amount of funds to pay to an user."
+        },
+        "availableAmount": {
+          "type": "string",
+          "description": "The user's available amount for exchange."
+        },
+        "rate": {
+          "type": "string",
+          "description": "The toReceive and toPay rate calculated at the creation moment."
+        },
+        "currencies": {
+          "type": "object",
+          "$ref": "#/definitions/Currencies"
+        }
+      }
+    },
+    "ExternalExchange": {
+      "required": [
+        "requestId",
+        "userType",
+        "addressForUserToPay",
+        "paymentInfo"
+      ],
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "description": "The 6 digit chars string that easy to remember for an user."
+        },
+        "userType": {
+          "type": "string",
+          "description": "The type of an user.",
+          "enum": [
+            "REGISTERED",
+            "UNREGISTERED"
+          ]
+        },
+        "addressForUserToPay": {
+          "type": "string",
+          "description": "The wallet address where user should send funds to complete an exchange."
+        },
+        "paymentInfo": {
+          "type": "object",
+          "$ref": "#/definitions/PaymentInfo",
+          "description": "Contains information about payments that has been applied for the exchange."
+        }
+      }
+    },
+    "CreateExternalExchange": {
+      "required": [
+        "paymentInfo",
+        "admissionAddress"
+      ],
+      "properties": {
+        "paymentInfo": {
+          "type": "object",
+          "$ref": "#/definitions/PaymentInfo",
+          "description": "Contains info about payments."
+        },
+        "admissionAddress": {
+          "type": "string",
+          "description": "The customer wallet ID or address."
+        }
+      }
+    }
+  },
+  "responses": {},
+  "parameters": {},
+  "securityDefinitions": {
+    "jwt": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization",
+      "description": "Simple JWT Auth logic."
+    }
+  },
+  "tags": [
+    {
+      "name": "QuickExchangeExternal",
+      "description": "The fast exchange with external source/destination proceeds by the service."
+    }
+  ]
+}
